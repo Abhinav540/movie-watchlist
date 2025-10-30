@@ -59,7 +59,7 @@ It supports **dark mode**, **movie details pages**, **global watchlist managemen
 - Theme managed via `ThemeContext`
 - Preference saved in `localStorage`
 - Tailwind `dark:` utility classes used throughout
-```jsx
+
 
 🎥 Movie Details Page
 
