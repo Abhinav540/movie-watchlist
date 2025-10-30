@@ -179,9 +179,9 @@ Released under the MIT License
 👨‍💻 Author
 
 Abhinav P — Frontend Developer | React Enthusiast
-📧 your-email@example.com
+📧 [abhinavputhenveetil@gmail.com](mailto:abhinavputhenveetil@gmail.com)  
+🔗 [www.linkedin.com/in/abhinav-p-2400072bb](https://www.linkedin.com/in/abhinav-p-2400072bb)
 
-🔗 [LinkedIn / Portfolio]
 
 🎉 Summary
 
