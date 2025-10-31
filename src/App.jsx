@@ -1,73 +1,140 @@
-import { useEffect } from "react";
-import Navbar from "./components/Navbar";
-import { WatchlistProvider } from "./context/WatchlistContext";
-import { ThemeProvider } from "./context/ThemeContext";
+import { useEffect, useState } from "react";
 
 function App() {
+  const [errors, setErrors] = useState([]);
+  const [info, setInfo] = useState({});
+
   useEffect(() => {
-    console.log('✅ App mounted');
-    console.log('📱 Device:', navigator.userAgent);
-    console.log('🌐 Screen:', window.innerWidth, 'x', window.innerHeight);
-    
-    // Try to catch any errors
-    window.addEventListener('error', (e) => {
-      console.error('❌ Global error:', e.message);
-      alert('Error: ' + e.message);
+    // Capture all errors
+    const errorHandler = (e) => {
+      setErrors(prev => [...prev, {
+        message: e.message || String(e),
+        stack: e.error?.stack || 'No stack',
+        time: new Date().toLocaleTimeString()
+      }]);
+    };
+
+    window.addEventListener('error', errorHandler);
+    window.addEventListener('unhandledrejection', (e) => {
+      errorHandler({ message: 'Promise rejection: ' + e.reason });
     });
+
+    // Collect system info
+    setInfo({
+      userAgent: navigator.userAgent,
+      screenWidth: window.innerWidth,
+      screenHeight: window.innerHeight,
+      pixelRatio: window.devicePixelRatio,
+      online: navigator.onLine,
+      cookies: navigator.cookieEnabled,
+      localStorage: !!window.localStorage,
+    });
+
+    return () => window.removeEventListener('error', errorHandler);
   }, []);
 
+  // Test imports
+  let navbarStatus = '❌ Not tested';
+  let themeStatus = '❌ Not tested';
+  let watchlistStatus = '❌ Not tested';
+  
+  try {
+    require('./components/Navbar');
+    navbarStatus = '✅ Import OK';
+  } catch (e) {
+    navbarStatus = '❌ Error: ' + e.message;
+  }
+
+  try {
+    require('./context/ThemeContext');
+    themeStatus = '✅ Import OK';
+  } catch (e) {
+    themeStatus = '❌ Error: ' + e.message;
+  }
+
+  try {
+    require('./context/WatchlistContext');
+    watchlistStatus = '✅ Import OK';
+  } catch (e) {
+    watchlistStatus = '❌ Error: ' + e.message;
+  }
+
   return (
-    <ThemeProvider>
-      <WatchlistProvider>
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-          <Navbar />
-          
-          {/* Simple content that should definitely work */}
-          <div className="container mx-auto px-4 py-8">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-2xl mx-auto">
-              <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-6">
-                🧪 Diagnostic Test
-              </h1>
-              
-              <div className="space-y-4 text-lg">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">✅</span>
-                  <span className="text-gray-700 dark:text-gray-300">
-                    App component loaded
-                  </span>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">✅</span>
-                  <span className="text-gray-700 dark:text-gray-300">
-                    Navbar rendered
-                  </span>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">✅</span>
-                  <span className="text-gray-700 dark:text-gray-300">
-                    Contexts working
-                  </span>
-                </div>
-                
-                <div className="mt-8 p-4 bg-blue-100 dark:bg-blue-900 rounded">
-                  <p className="text-blue-800 dark:text-blue-200 font-semibold">
-                    If you see this, React is working!
-                  </p>
-                </div>
-                
-                <div className="mt-8 p-4 bg-yellow-100 dark:bg-yellow-900 rounded">
-                  <p className="text-yellow-800 dark:text-yellow-200">
-                    Screen: {window.innerWidth} x {window.innerHeight}
-                  </p>
-                </div>
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#1a1a1a',
+      color: '#fff',
+      padding: '20px',
+      fontFamily: 'monospace',
+      fontSize: '14px'
+    }}>
+      <h1 style={{ color: '#00ff00', marginBottom: '20px' }}>
+        🔍 ERROR DIAGNOSTIC TOOL
+      </h1>
+
+      <div style={{
+        backgroundColor: '#2a2a2a',
+        padding: '15px',
+        borderRadius: '8px',
+        marginBottom: '20px'
+      }}>
+        <h2 style={{ color: '#ffaa00', marginBottom: '10px' }}>System Info:</h2>
+        {Object.entries(info).map(([key, value]) => (
+          <div key={key}>
+            <strong>{key}:</strong> {String(value)}
+          </div>
+        ))}
+      </div>
+
+      <div style={{
+        backgroundColor: '#2a2a2a',
+        padding: '15px',
+        borderRadius: '8px',
+        marginBottom: '20px'
+      }}>
+        <h2 style={{ color: '#00aaff', marginBottom: '10px' }}>Import Tests:</h2>
+        <div>Navbar: {navbarStatus}</div>
+        <div>ThemeContext: {themeStatus}</div>
+        <div>WatchlistContext: {watchlistStatus}</div>
+      </div>
+
+      {errors.length > 0 && (
+        <div style={{
+          backgroundColor: '#ff0000',
+          padding: '15px',
+          borderRadius: '8px',
+          marginBottom: '20px'
+        }}>
+          <h2 style={{ marginBottom: '10px' }}>❌ ERRORS FOUND:</h2>
+          {errors.map((error, i) => (
+            <div key={i} style={{
+              backgroundColor: 'rgba(0,0,0,0.3)',
+              padding: '10px',
+              marginBottom: '10px',
+              borderRadius: '4px'
+            }}>
+              <div><strong>Time:</strong> {error.time}</div>
+              <div><strong>Message:</strong> {error.message}</div>
+              <div style={{ fontSize: '12px', marginTop: '5px' }}>
+                <strong>Stack:</strong>
+                <pre style={{ overflow: 'auto' }}>{error.stack}</pre>
               </div>
             </div>
-          </div>
+          ))}
         </div>
-      </WatchlistProvider>
-    </ThemeProvider>
+      )}
+
+      {errors.length === 0 && (
+        <div style={{
+          backgroundColor: '#00aa00',
+          padding: '15px',
+          borderRadius: '8px'
+        }}>
+          <h2>✅ NO ERRORS DETECTED</h2>
+          <p>React is running successfully!</p>
+        </div>
+      )}
+    </div>
   );
 }
 
