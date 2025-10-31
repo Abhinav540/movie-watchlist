@@ -1,14 +1,14 @@
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import Movies from "./components/Movies";
 import Navbar from "./components/Navbar";
 import Watchlist from "./components/Watchlist";
 import MovieSlider from "./components/MovieSlider";
 import MovieDetails from "./components/MovieDetails";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { WatchlistProvider } from "./context/WatchlistContext";
 import { ThemeProvider } from "./context/ThemeContext";
-import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
 
+// ScrollToTop must be inside BrowserRouter
 function ScrollToTop() {
   const { pathname } = useLocation();
 
@@ -19,21 +19,33 @@ function ScrollToTop() {
   return null;
 }
 
+// Home page component
+function HomePage() {
+  return (
+    <>
+      <MovieSlider />
+      <Movies />
+    </>
+  );
+}
+
 function App() {
   return (
-    <ThemeProvider>
-      <WatchlistProvider>
-        <BrowserRouter>
-          <ScrollToTop />
-          <Navbar />
-          <Routes>
-            <Route path='/' element={<><MovieSlider/> <Movies /></>} />           
-            <Route path='/watchlist' element={<Watchlist />} />
-            <Route path='/movie/:id' element={<MovieDetails />} />
-          </Routes>
-        </BrowserRouter>
-      </WatchlistProvider>
-    </ThemeProvider>
+    <BrowserRouter>
+      <ThemeProvider>
+        <WatchlistProvider>
+          <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+            <Navbar />
+            <ScrollToTop />
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/watchlist" element={<Watchlist />} />
+              <Route path="/movie/:id" element={<MovieDetails />} />
+            </Routes>
+          </div>
+        </WatchlistProvider>
+      </ThemeProvider>
+    </BrowserRouter>
   );
 }
 
