@@ -1,51 +1,46 @@
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { useEffect, lazy, Suspense } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
 import Navbar from "./components/Navbar";
 import { WatchlistProvider } from "./context/WatchlistContext";
 import { ThemeProvider } from "./context/ThemeContext";
 
-// Lazy load components
-const Movies = lazy(() => import("./components/Movies"));
-const Watchlist = lazy(() => import("./components/Watchlist"));
-const MovieDetails = lazy(() => import("./components/MovieDetails"));
-
-// ScrollToTop component
-function ScrollToTop() {
-  const { pathname } = useLocation();
-
+// Simple test component
+function TestPage() {
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
+    console.log('🧪 TestPage mounted');
+    console.log('📱 Window size:', window.innerWidth, window.innerHeight);
+    console.log('🔑 API Key exists:', !!import.meta.env.VITE_TMDB_API_KEY);
+  }, []);
 
-  return null;
-}
-
-// Loading component
-function LoadingFallback() {
   return (
-    <div className="flex items-center justify-center min-h-[50vh] bg-gray-50 dark:bg-gray-900">
-      <div className="text-center">
-        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-        <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
+    <div className="container mx-auto px-4 py-8">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+        <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
+          ✅ React Router Works!
+        </h1>
+        <div className="space-y-4 text-gray-600 dark:text-gray-300">
+          <p>✅ Navbar rendering</p>
+          <p>✅ ThemeContext working</p>
+          <p>✅ WatchlistContext working</p>
+          <p>✅ Routes working</p>
+          <p className="text-yellow-600 dark:text-yellow-400 font-semibold">
+            🔍 Now testing Movies component...
+          </p>
+        </div>
       </div>
-    </div>
-  );
-}
-
-// HomePage - TESTING MOVIES ONLY (NO SLIDER)
-function HomePage() {
-  console.log('🏠 HomePage rendering');
-  
-  return (
-    <div className="w-full">
-      <div className="container mx-auto px-4 py-8">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
-          🧪 Testing Movies Component Only
+      
+      {/* Try to render a simple movie card */}
+      <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-4">
+          🎬 Test Movie Card
         </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4">
+            <div className="aspect-[2/3] bg-gray-300 dark:bg-gray-600 rounded mb-2"></div>
+            <p className="text-sm text-gray-800 dark:text-white">Test Movie</p>
+          </div>
+        </div>
       </div>
-      <Suspense fallback={<LoadingFallback />}>
-        <Movies />
-      </Suspense>
     </div>
   );
 }
@@ -63,14 +58,11 @@ function App() {
         <WatchlistProvider>
           <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
             <Navbar />
-            <ScrollToTop />
-            <Suspense fallback={<LoadingFallback />}>
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/watchlist" element={<Watchlist />} />
-                <Route path="/movie/:id" element={<MovieDetails />} />
-              </Routes>
-            </Suspense>
+            <Routes>
+              <Route path="/" element={<TestPage />} />
+              <Route path="/watchlist" element={<TestPage />} />
+              <Route path="/movie/:id" element={<TestPage />} />
+            </Routes>
           </div>
         </WatchlistProvider>
       </ThemeProvider>
