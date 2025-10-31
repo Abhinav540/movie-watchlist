@@ -4,10 +4,9 @@ import Navbar from "./components/Navbar";
 import { WatchlistProvider } from "./context/WatchlistContext";
 import { ThemeProvider } from "./context/ThemeContext";
 
-// Lazy load components to prevent blocking
+// Lazy load components
 const Movies = lazy(() => import("./components/Movies"));
 const Watchlist = lazy(() => import("./components/Watchlist"));
-const MovieSlider = lazy(() => import("./components/MovieSlider"));
 const MovieDetails = lazy(() => import("./components/MovieDetails"));
 
 // ScrollToTop component
@@ -33,13 +32,17 @@ function LoadingFallback() {
   );
 }
 
-// HomePage component
+// HomePage - TESTING MOVIES ONLY (NO SLIDER)
 function HomePage() {
+  console.log('🏠 HomePage rendering');
+  
   return (
     <div className="w-full">
-      <Suspense fallback={<LoadingFallback />}>
-        <MovieSlider />
-      </Suspense>
+      <div className="container mx-auto px-4 py-8">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">
+          🧪 Testing Movies Component Only
+        </h2>
+      </div>
       <Suspense fallback={<LoadingFallback />}>
         <Movies />
       </Suspense>
