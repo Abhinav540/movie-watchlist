@@ -6,23 +6,28 @@ function MovieSlider() {
   const [movies, setMovies] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchLatestMovies = async () => {
       setLoading(true);
+      setError(null);
+      
       try {
-        // Fetch now playing movies (latest releases)
         const response = await axios.get(
-          `https://api.themoviedb.org/3/movie/now_playing?api_key=8c8d4201c369e3061713ad1276a51176&language=en-US&page=1`
+          `https://api.themoviedb.org/3/movie/now_playing?api_key=8c8d4201c369e3061713ad1276a51176&language=en-US&page=1`,
+          { timeout: 10000 }
         );
 
         if (response.data && response.data.results) {
-          // Get first 5 latest movies
           setMovies(response.data.results.slice(0, 5));
+          console.log('✅ MovieSlider: Fetched', response.data.results.length, 'movies');
         }
       } catch (error) {
-        console.error('Error fetching latest movies:', error);
+        console.error('❌ MovieSlider Error:', error.message);
+        setError(error.message);
       } finally {
         setLoading(false);
       }
@@ -31,24 +36,26 @@ function MovieSlider() {
     fetchLatestMovies();
   }, []);
 
-  // Auto-slide effect
   useEffect(() => {
     if (movies.length === 0) return;
 
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % movies.length);
-    }, 5000); // Change slide every 5 seconds
+      setImageLoaded(false); // Reset for next image
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [movies.length]);
 
   const handlePrevious = () => {
+    setImageLoaded(false);
     setCurrentIndex((prevIndex) => 
       prevIndex === 0 ? movies.length - 1 : prevIndex - 1
     );
   };
 
   const handleNext = () => {
+    setImageLoaded(false);
     setCurrentIndex((prevIndex) => (prevIndex + 1) % movies.length);
   };
 
@@ -58,32 +65,74 @@ function MovieSlider() {
 
   if (loading) {
     return (
-      <div className="w-full h-[60vh] bg-gray-200 dark:bg-gray-800 animate-pulse flex items-center justify-center">
-        <p className="text-gray-500 dark:text-gray-400 text-xl">Loading latest movies...</p>
+      <div className="w-full h-[50vh] sm:h-[60vh] bg-gray-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-500 border-r-transparent"></div>
+          <p className="text-white mt-4">Loading slider...</p>
+        </div>
       </div>
     );
   }
 
-  if (movies.length === 0) {
-    return null;
+  if (error || movies.length === 0) {
+    console.log('⚠️ MovieSlider: Not rendering due to error or no movies');
+    // Don't return null - return a fallback to ensure page still renders
+    return (
+      <div className="w-full h-[30vh] bg-gradient-to-r from-gray-800 to-gray-900 flex items-center justify-center">
+        <div className="text-center text-white">
+          <p className="text-xl mb-2">🎬</p>
+          <p className="text-sm">Slider unavailable</p>
+        </div>
+      </div>
+    );
   }
 
   const currentMovie = movies[currentIndex];
-  const backdropUrl = currentMovie.backdrop_path
-    ? `https://image.tmdb.org/t/p/original${currentMovie.backdrop_path}`
-    : `https://image.tmdb.org/t/p/w1280${currentMovie.poster_path}`;
+  
+  // Use smaller images for mobile - CRITICAL FIX!
+  const getBackdropUrl = () => {
+    // Check if mobile
+    const isMobile = window.innerWidth < 768;
+    
+    if (currentMovie.backdrop_path) {
+      // Mobile: use w780, Desktop: use w1280 (NOT original!)
+      const size = isMobile ? 'w780' : 'w1280';
+      return `https://image.tmdb.org/t/p/${size}${currentMovie.backdrop_path}`;
+    } else if (currentMovie.poster_path) {
+      return `https://image.tmdb.org/t/p/w780${currentMovie.poster_path}`;
+    }
+    return '';
+  };
+
+  const backdropUrl = getBackdropUrl();
 
   return (
     <div className="relative w-full h-[50vh] sm:h-[60vh] md:h-[70vh] lg:h-[80vh] overflow-hidden bg-gray-900">
-      {/* Background Image */}
+      {/* Background Image with lazy loading */}
       <div
-        className="absolute inset-0 bg-cover bg-center transition-all duration-700 cursor-pointer"
+        className={`absolute inset-0 bg-cover bg-center transition-opacity duration-500 ${
+          imageLoaded ? 'opacity-100' : 'opacity-0'
+        }`}
         style={{ backgroundImage: `url(${backdropUrl})` }}
-        onClick={() => handleSlideClick(currentMovie.id)}
       >
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-transparent"></div>
       </div>
+
+      {/* Preload image */}
+      <img
+        src={backdropUrl}
+        alt=""
+        onLoad={() => setImageLoaded(true)}
+        style={{ display: 'none' }}
+      />
+
+      {/* Loading placeholder while image loads */}
+      {!imageLoaded && (
+        <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
+          <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-blue-500 border-r-transparent"></div>
+        </div>
+      )}
 
       {/* Content */}
       <div className="relative z-10 h-full flex items-center px-4 sm:px-6 md:px-8 lg:px-16">

@@ -19,16 +19,6 @@ function ScrollToTop() {
   return null;
 }
 
-// Home page component
-function HomePage() {
-  return (
-    <>
-      <MovieSlider />
-      <Movies />
-    </>
-  );
-}
-
 function App() {
   return (
     <BrowserRouter>
@@ -38,7 +28,15 @@ function App() {
             <Navbar />
             <ScrollToTop />
             <Routes>
-              <Route path="/" element={<HomePage />} />
+              <Route 
+                path="/" 
+                element={
+                  <>
+                    <MovieSlider />
+                    <Movies />
+                  </>
+                } 
+              />
               <Route path="/watchlist" element={<Watchlist />} />
               <Route path="/movie/:id" element={<MovieDetails />} />
             </Routes>
