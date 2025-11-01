@@ -26,8 +26,8 @@ export default defineConfig({
     },
     // Target modern browsers
     target: 'es2015',
-    // Minify for production
-    minify: 'terser',
+    // Use esbuild for minification (faster and built-in)
+    minify: 'esbuild',
   },
   // Optimize dependencies
   optimizeDeps: {
