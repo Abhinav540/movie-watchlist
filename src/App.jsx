@@ -1,152 +1,214 @@
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import React, { useEffect, useState, Suspense, lazy } from "react";
+import { useState, useEffect } from "react";
 
-// Import contexts directly (not lazy)
-import { WatchlistProvider } from "./context/WatchlistContext.jsx";
-import { ThemeProvider } from "./context/ThemeContext.jsx";
-
-// Import Navbar directly (not lazy) - it's small and needed immediately
-import Navbar from "./components/Navbar.jsx";
-
-// Lazy load heavy components
-const Movies = lazy(() => import("./components/Movies.jsx"));
-const Watchlist = lazy(() => import("./components/Watchlist.jsx"));
-const MovieDetails = lazy(() => import("./components/MovieDetails.jsx"));
-const MovieSlider = lazy(() => import("./components/MovieSlider.jsx"));
-
-// ScrollToTop component
-function ScrollToTop() {
-  const { pathname } = useLocation();
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
-
-  return null;
-}
-
-// Loading component
-function LoadingFallback() {
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="text-center">
-        <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent mb-4"></div>
-        <p className="text-gray-600 dark:text-gray-400">Loading...</p>
-      </div>
-    </div>
-  );
-}
-
-// Error Boundary Component
-class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false, error: null };
+const styles = {
+  container: {
+    minHeight: '100vh',
+    backgroundColor: '#111827',
+    color: '#ffffff',
+    fontFamily: 'system-ui, -apple-system, sans-serif'
+  },
+  navbar: {
+    backgroundColor: '#1e40af',
+    padding: '1rem',
+    borderBottom: '2px solid #3b82f6'
+  },
+  navContent: {
+    maxWidth: '1200px',
+    margin: '0 auto',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '2rem'
+  },
+  logo: {
+    fontSize: '1.5rem',
+    fontWeight: 'bold'
+  },
+  link: {
+    color: '#ffffff',
+    textDecoration: 'none',
+    padding: '0.5rem 1rem',
+    borderRadius: '0.375rem',
+    transition: 'background-color 0.2s'
+  },
+  content: {
+    maxWidth: '1200px',
+    margin: '0 auto',
+    padding: '2rem'
+  },
+  card: {
+    backgroundColor: '#1f2937',
+    borderRadius: '0.5rem',
+    padding: '2rem',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
+    marginBottom: '2rem'
+  },
+  title: {
+    fontSize: '2.5rem',
+    fontWeight: 'bold',
+    marginBottom: '1.5rem',
+    color: '#ffffff'
+  },
+  success: {
+    fontSize: '1.25rem',
+    lineHeight: '2',
+    marginBottom: '1rem'
+  },
+  button: {
+    backgroundColor: '#3b82f6',
+    color: '#ffffff',
+    padding: '1rem 2rem',
+    borderRadius: '0.5rem',
+    border: 'none',
+    fontSize: '1.125rem',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s',
+    marginTop: '1rem'
+  },
+  infoBox: {
+    backgroundColor: '#065f46',
+    padding: '1rem',
+    borderRadius: '0.5rem',
+    marginTop: '1.5rem',
+    fontSize: '0.875rem'
+  },
+  loadingContainer: {
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#111827',
+    color: '#ffffff'
+  },
+  spinner: {
+    width: '50px',
+    height: '50px',
+    border: '4px solid #ffffff',
+    borderTopColor: 'transparent',
+    borderRadius: '50%',
+    animation: 'spin 1s linear infinite'
   }
+};
 
-  static getDerivedStateFromError(error) {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error, errorInfo) {
-    console.error('Error caught:', error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-          <div className="bg-red-500 text-white p-6 rounded-lg max-w-2xl">
-            <h1 className="text-2xl font-bold mb-4">Something went wrong</h1>
-            <p className="mb-2">Error: {this.state.error?.message}</p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="mt-4 bg-white text-red-500 px-4 py-2 rounded"
-            >
-              Reload Page
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
-
-// HomePage component with error handling
-function HomePage() {
+function App() {
   const [mounted, setMounted] = useState(false);
+  const [count, setCount] = useState(0);
+  const [logs, setLogs] = useState([]);
+
+  const addLog = (message) => {
+    const timestamp = new Date().toLocaleTimeString();
+    setLogs(prev => [...prev, `[${timestamp}] ${message}`]);
+    console.log(message);
+  };
 
   useEffect(() => {
-    setMounted(true);
-    console.log('✅ HomePage mounted');
+    addLog('🚀 App component mounted');
+    addLog(`📱 Device: ${navigator.userAgent}`);
+    addLog(`🌐 Screen: ${window.innerWidth} x ${window.innerHeight}`);
+    addLog(`🔧 Location: ${window.location.href}`);
+
+    // Add CSS animation for spinner
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      button:hover {
+        background-color: #2563eb !important;
+      }
+      a:hover {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Global error handler
+    const errorHandler = (e) => {
+      const msg = `❌ ERROR: ${e.message || e}`;
+      addLog(msg);
+      alert(msg);
+    };
+
+    window.addEventListener('error', errorHandler);
+    window.addEventListener('unhandledrejection', (e) => {
+      errorHandler({ message: 'Promise rejection: ' + e.reason });
+    });
+
+    // Simulate loading
+    const timer = setTimeout(() => {
+      setMounted(true);
+      addLog('✅ App fully loaded');
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('error', errorHandler);
+    };
   }, []);
 
   if (!mounted) {
-    return <LoadingFallback />;
+    return (
+      <div style={styles.loadingContainer}>
+        <div style={styles.spinner}></div>
+        <p style={{ marginTop: '1rem', fontSize: '1.25rem' }}>Loading App...</p>
+      </div>
+    );
   }
 
   return (
-    <div className="w-full">
-      <Suspense fallback={<LoadingFallback />}>
-        <MovieSlider />
-      </Suspense>
-      <Suspense fallback={<LoadingFallback />}>
-        <Movies />
-      </Suspense>
+    <div style={styles.container}>
+      {/* Navbar */}
+      <nav style={styles.navbar}>
+        <div style={styles.navContent}>
+          <span style={styles.logo}>🎬 Movie Watchlist</span>
+          <a href="/" style={styles.link}>Home</a>
+          <a href="#watchlist" style={styles.link}>Watchlist</a>
+        </div>
+      </nav>
+
+      {/* Content */}
+      <div style={styles.content}>
+        <div style={styles.card}>
+          <h1 style={styles.title}>🎉 SUCCESS!</h1>
+          
+          <div style={styles.success}>
+            <p>✅ React is working perfectly</p>
+            <p>✅ JavaScript executing</p>
+            <p>✅ State management working</p>
+            <p>✅ Event handlers working</p>
+            <p>✅ Styles rendering correctly</p>
+          </div>
+
+          <button 
+            style={styles.button}
+            onClick={() => {
+              setCount(count + 1);
+              addLog(`🖱️ Button clicked ${count + 1} times`);
+            }}
+          >
+            Click Me! (Clicked {count} times)
+          </button>
+
+          <div style={styles.infoBox}>
+            <p><strong>📱 Device Info:</strong></p>
+            <p>Screen: {window.innerWidth} x {window.innerHeight}</p>
+            <p>Pixel Ratio: {window.devicePixelRatio}</p>
+            <p>Online: {navigator.onLine ? 'Yes' : 'No'}</p>
+          </div>
+
+          {/* Console Logs */}
+          <div style={{...styles.infoBox, backgroundColor: '#1f2937', marginTop: '1.5rem'}}>
+            <p style={{fontWeight: 'bold', marginBottom: '0.5rem'}}>📋 Console Logs:</p>
+            {logs.map((log, i) => (
+              <p key={i} style={{fontSize: '0.75rem', marginBottom: '0.25rem', fontFamily: 'monospace'}}>
+                {log}
+              </p>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
-  );
-}
-
-function App() {
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    console.log('✅ App initializing...');
-    console.log('📱 UserAgent:', navigator.userAgent);
-    console.log('🌐 Screen:', window.innerWidth, 'x', window.innerHeight);
-    
-    // Small delay to ensure everything is ready
-    setTimeout(() => {
-      setReady(true);
-      console.log('✅ App ready');
-    }, 100);
-
-    // Catch unhandled errors
-    window.addEventListener('error', (e) => {
-      console.error('❌ Unhandled error:', e.message);
-    });
-
-    window.addEventListener('unhandledrejection', (e) => {
-      console.error('❌ Unhandled promise rejection:', e.reason);
-    });
-  }, []);
-
-  if (!ready) {
-    return <LoadingFallback />;
-  }
-
-  return (
-    <ErrorBoundary>
-      <BrowserRouter>
-        <ThemeProvider>
-          <WatchlistProvider>
-            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
-              <Navbar />
-              <ScrollToTop />
-              <Suspense fallback={<LoadingFallback />}>
-                <Routes>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/watchlist" element={<Watchlist />} />
-                  <Route path="/movie/:id" element={<MovieDetails />} />
-                </Routes>
-              </Suspense>
-            </div>
-          </WatchlistProvider>
-        </ThemeProvider>
-      </BrowserRouter>
-    </ErrorBoundary>
   );
 }
 
