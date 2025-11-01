@@ -5,9 +5,12 @@ import Pagination from "./Pagination";
 import { WatchlistContext } from "../context/WatchlistContext";
 import { useSearchParams } from "react-router-dom";
 
+// Use environment variable for API key
+const API_KEY = import.meta.env.VITE_TMDB_API_KEY || '8c8d4201c369e3061713ad1276a51176';
+
 function Movies() {
   const [movies, setMovies] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Start with true
   const [pageNo, setPageNo] = useState(1);
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('search') || '';
@@ -24,6 +27,7 @@ function Movies() {
   const handlePrevious = () => {
     if (pageNo > 1) setPageNo(pageNo - 1);
   };
+  
   const handleNext = () => setPageNo(pageNo + 1);
   
   // Auto-scroll to top when page changes
@@ -37,18 +41,19 @@ function Movies() {
   useEffect(() => {
     const fetchMovies = async () => {
       setLoading(true);
+      
       try {
         let response;
         
         if (searchQuery) {
           // Search for movies if query exists
           response = await axios.get(
-            `https://api.themoviedb.org/3/search/movie?api_key=8c8d4201c369e3061713ad1276a51176&language=en-US&query=${searchQuery}&page=${pageNo}`
+            `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&language=en-US&query=${encodeURIComponent(searchQuery)}&page=${pageNo}`
           );
         } else {
           // Fetch popular movies if no search query
           response = await axios.get(
-            `https://api.themoviedb.org/3/movie/popular?api_key=8c8d4201c369e3061713ad1276a51176&language=en-US&page=${pageNo}`
+            `https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}&language=en-US&page=${pageNo}`
           );
         }
 
@@ -93,14 +98,14 @@ function Movies() {
         )}
       </h1>
 
-      {loading && (
+      {loading && movies.length === 0 && (
         <div className="text-center text-blue-400 dark:text-blue-300 mb-4 text-base md:text-lg animate-pulse">
-          Loading new movies...
+          Loading movies...
         </div>
       )}
 
       <div className="flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-6">
-        {movies.length > 0
+        {!loading && movies.length > 0
           ? movies.map((movie) => (
               <Moviecard
                 key={movie.id}
@@ -112,12 +117,14 @@ function Movies() {
                 }}
               />
             ))
-          : [...Array(20)].map((_, i) => (
+          : loading
+          ? [...Array(20)].map((_, i) => (
               <div
                 key={i}
-                className="h-[30vh] sm:h-[35vh] w-[140px] sm:w-[160px] bg-gray-700 animate-pulse rounded-xl"
+                className="h-[30vh] sm:h-[35vh] w-[140px] sm:w-[160px] bg-gray-700 dark:bg-gray-800 animate-pulse rounded-xl"
               ></div>
-            ))}
+            ))
+          : null}
       </div>
 
       {!loading && movies.length === 0 && (
@@ -126,11 +133,13 @@ function Movies() {
         </div>
       )}
 
-      <Pagination
-        handleprevious={handlePrevious}
-        handleNext={handleNext}
-        pageNo={pageNo}
-      />
+      {!loading && movies.length > 0 && (
+        <Pagination
+          handleprevious={handlePrevious}
+          handleNext={handleNext}
+          pageNo={pageNo}
+        />
+      )}
     </div>
   );
 }
